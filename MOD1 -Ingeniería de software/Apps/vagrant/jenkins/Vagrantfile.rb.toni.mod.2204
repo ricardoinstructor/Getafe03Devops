@@ -1,0 +1,38 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "bento/ubuntu-22.04"
+  config.vm.box_version = "202502.21.0"
+
+
+  config.vm.define "master" do |master|
+    master.vm.hostname = "maestro"
+    master.vm.network "private_network", ip: "192.168.33.10"
+    master.vm.network "forwarded_port", guest: 8080, host: 8080
+    master.vm.provider "virtualbox" do |vb|
+      vb.name = "maestro"
+      vb.memory = 4096  # Asigna 4 GB de memoria RAM
+      vb.cpus = 2 # un par de vcores
+
+    end
+    master.vm.provision "shell", path: "toni_provision.sh"
+
+  end
+
+
+  # Configuración de dos máquinas virtuales objetivo
+  (1..3).each do |i|
+    config.vm.define "slave#{i}" do |slave|
+      slave.vm.hostname = "slave#{i}"
+      slave.vm.network "private_network", ip: "192.168.33.#{i+20}"
+      slave.vm.provider "virtualbox" do |vb|
+        vb.name = "slave#{i}"
+        vb.memory = 2048  # Asigna 1 GB de memoria RAM
+
+      end
+      slave.vm.provision "shell", path: "slave.sh"
+    end
+  end
+
+end
